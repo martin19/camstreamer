@@ -1,5 +1,9 @@
 package com.randomher0;
 
+import static android.app.PendingIntent.getActivity;
+
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -42,6 +46,15 @@ public class CameraActivity extends AppCompatActivity {
 //                        .setAction("Action", null).show();
 //            }
 //        });
+//    }
+
+//    private void readParams() {
+//        SharedPreferences sharedPref = getSharedPreferences(
+////                getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+////        SharedPreferences.Editor.getString("ssid");
+////        SharedPreferences.Editor.getString("password");
+////        SharedPreferences.Editor.getInt()
+////        SharedPreferences.Editor.getBoolean()
 //    }
 
     @Override
