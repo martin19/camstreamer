@@ -2,6 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -14,21 +20,8 @@
         tools:targetApi="31">
 
         <!-- main activity -->
-        <activity
-            android:name=".MainActivity"
-            android:exported="true"
-            android:label="@string/title_activity_main2"
-            android:theme="@style/Theme.CamStreamer">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-
-        <!-- camera preview activity -->
 <!--        <activity-->
-<!--            android:name=".CameraActivity"-->
+<!--            android:name=".MainActivity"-->
 <!--            android:exported="true"-->
 <!--            android:label="@string/title_activity_main2"-->
 <!--            android:theme="@style/Theme.CamStreamer">-->
@@ -38,6 +31,19 @@
 <!--                <category android:name="android.intent.category.LAUNCHER" />-->
 <!--            </intent-filter>-->
 <!--        </activity>-->
+
+        <!-- camera preview activity -->
+        <activity
+            android:name=".CameraActivity"
+            android:exported="true"
+            android:label="@string/title_activity_main2"
+            android:theme="@style/Theme.CamStreamer">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
 
     </application>
