@@ -7,22 +7,69 @@
 
     <fragment
         android:id="@+id/FirstFragment"
-        android:name="com.randomher0.FirstFragment"
-        android:label="@string/first_fragment_label"
-        tools:layout="@layout/fragment_first">
-
+        android:name="com.randomher0.HomeFragment"
+        android:label="@string/home_fragment_label"
+        tools:layout="@layout/fragment_home"
+    >
         <action
-            android:id="@+id/action_FirstFragment_to_SecondFragment"
-            app:destination="@id/SecondFragment" />
+            android:id="@+id/action_to_Settings"
+            app:destination="@id/settingsFragment" />
+        <action
+            android:id="@+id/action_to_Camera"
+            app:destination="@id/cameraFragment" />
+
     </fragment>
-    <fragment
-        android:id="@+id/SecondFragment"
-        android:name="com.randomher0.SecondFragment"
-        android:label="@string/second_fragment_label"
-        tools:layout="@layout/fragment_second">
 
-        <action
-            android:id="@+id/action_SecondFragment_to_FirstFragment"
-            app:destination="@id/FirstFragment" />
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.randomher0.SettingsFragment"
+        android:label="Settings"
+    >
+    </fragment>
+
+    <fragment
+        android:id="@+id/cameraFragment"
+        android:name="com.randomher0.CameraFragment"
+        android:label="Camera"
+        tools:layout="@layout/fragment_camera"
+    >
     </fragment>
 </navigation>
+
+
+<!--<action-->
+<!--android:id="@+id/action_FirstFragment_to_SecondFragment"-->
+<!--app:destination="@id/SecondFragment" />-->
+
+<!--<action-->
+<!--android:id="@+id/action_SecondFragment_to_FirstFragment"-->
+<!--app:destination="@id/FirstFragment" />-->
+
+<!--<navigation xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--xmlns:app="http://schemas.android.com/apk/res-auto"-->
+<!--android:id="@+id/nav_graph"-->
+<!--app:startDestination="@id/firstFragment">-->
+
+<!--<fragment-->
+<!--    android:id="@+id/rootSettingsFragment"-->
+<!--    android:name="com.randomher0.SettingsFragment"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="match_parent"-->
+<!--    >-->
+<!--    &lt;!&ndash;            <action&ndash;&gt;-->
+<!--    &lt;!&ndash;                android:id="@+id/action_profile_to_friendslist"&ndash;&gt;-->
+<!--    &lt;!&ndash;                app:destination="@id/friendslist" />&ndash;&gt;-->
+<!--</fragment>-->
+
+<!--<fragment-->
+<!--    android:id="@+id/firstFragment"-->
+<!--    android:name="com.randomher0.HomeFragment"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="match_parent" />-->
+
+<!--<fragment-->
+<!--    android:id="@+id/secondFragment"-->
+<!--    android:name="com.randomher0.HomeFragment"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="match_parent" />-->
+<!--</navigation>-->

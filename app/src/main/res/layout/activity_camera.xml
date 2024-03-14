@@ -8,23 +8,4 @@
 
     <!-- creating a video view on below line-->
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
-
-        <VideoView
-            android:id="@+id/idVideoView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true" />
-
-        <Button
-            android:id="@+id/button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:onClick="connectWifi"
-            android:text="Connect Cam" />
-    </LinearLayout>
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
