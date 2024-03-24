@@ -1,7 +1,5 @@
 package com.randomher0;
 
-import static com.arthenica.ffmpegkit.Packages.getPackageName;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
@@ -17,12 +15,21 @@ import android.os.PatternMatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.MediaController;
 import android.widget.Toast;
-import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.OptIn;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.datasource.DefaultDataSource;
+import androidx.media3.datasource.cronet.CronetDataSource;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.rtsp.RtspMediaSource;
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
+import androidx.media3.ui.PlayerView;
 import androidx.preference.PreferenceManager;
 
 import com.randomher0.databinding.FragmentCameraBinding;
@@ -42,26 +49,10 @@ public class CameraFragment extends Fragment {
 
     }
 
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-//        setContentView(R.layout.activity_camera);
-
-        VideoView videoView = getActivity().findViewById(R.id.idVideoView);
-
-        MediaController mediaController = new MediaController(getActivity());
-
-        mediaController.setAnchorView(videoView);
-
-        Uri uri = Uri.parse("android.resource://"+getActivity().getPackageName()+"/"+R.raw.globe);
-
-        videoView.setMediaController(mediaController);
-
-        videoView.setVideoURI(uri);
-
-        videoView.requestFocus();
-        // on below line we are calling start  method to start our video view.
-        videoView.start();
+        //displayLiveStream();
 
         binding.buttonConnectCam.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -73,8 +64,68 @@ public class CameraFragment extends Fragment {
 
     public void connectWifi() {
         //connectCam1();
-        //connectCam2();
-        testPreferences();
+        connectCam2();
+        //testPreferences();
+    }
+
+    private void displayDemoVideo() {
+//TODO: this code worked to play a demo video in resources folder.
+//
+//        setContentView(R.layout.activity_camera);
+//
+//        VideoView videoView = getActivity().findViewById(R.id.idVideoView);
+//
+//        MediaController mediaController = new MediaController(getActivity());
+//
+//        mediaController.setAnchorView(videoView);
+//
+//        //Uri uri = Uri.parse("android.resource://"+getActivity().getPackageName()+"/"+R.raw.globe);
+//
+//        videoView.setMediaController(mediaController);
+//
+//        videoView.setVideoURI(uri);
+//
+//        videoView.requestFocus();
+//        // on below line we are calling start  method to start our video view.
+//        videoView.start();
+    }
+
+    @OptIn(markerClass = UnstableApi.class) private void displayLiveStream(Network network) {
+//        VideoView videoView = getActivity().findViewById(R.id.idVideoView);
+//        MediaController mediaController = new MediaController(getActivity());
+//        mediaController.setAnchorView(videoView);
+//        Uri uri = Uri.parse("rtsp://192.168.42.1:554/live");
+//        videoView.setMediaController(mediaController);
+//        videoView.setVideoURI(uri);
+//        videoView.requestFocus();
+//        videoView.start();
+
+        Context context = getActivity().getApplicationContext();
+
+        // Given a CronetEngine and Executor, build a CronetDataSource.Factory.
+//        CronetDataSource.Factory cronetDataSourceFactory =
+//                new CronetDataSource.Factory(cronetEngine, executor);
+//
+//        DefaultDataSource.Factory dataSourceFactory =
+//                new DefaultDataSource.Factory(
+//                        context,
+//                        /* baseDataSourceFactory= */ cronetDataSourceFactory);
+
+        PlayerView playerView = getActivity().findViewById(R.id.player_view);
+        ExoPlayer player = new ExoPlayer.Builder(context)
+                .setMediaSourceFactory(new RtspMediaSource.Factory()
+                        .setTimeoutMs(1000000)
+                        .setDebugLoggingEnabled(true)
+                        .setSocketFactory(network.getSocketFactory())
+                )
+//        .setMediaSourceFactory(
+//                new DefaultMediaSourceFactory(context)
+//                .setDataSourceFactory(dataSourceFactory))
+                .build();
+        playerView.setPlayer(player);
+        Uri rtspUri = Uri.parse("rtsp://192.168.42.1:554/live");
+        player.setMediaItem(MediaItem.fromUri(rtspUri));
+        player.prepare();
     }
 
     private void testPreferences() {
@@ -180,13 +231,24 @@ public class CameraFragment extends Fragment {
             @Override
             public void onAvailable(@NonNull Network network) {
                 super.onAvailable(network);
-                Toast.makeText(context, "network is available", Toast.LENGTH_LONG);
+                Toast.makeText(context, "network is available", Toast.LENGTH_LONG).show();
+
+                FragmentActivity activity = getActivity();
+                if(activity == null) return;
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        displayLiveStream(network);
+                    }
+                });
+
+                Toast.makeText(context, "streaming.", Toast.LENGTH_LONG).show();
             }
 
             @Override
             public void onUnavailable() {
                 super.onUnavailable();
-                Toast.makeText(context, "network is unavailable", Toast.LENGTH_LONG);
+                Toast.makeText(context, "network is unavailable", Toast.LENGTH_LONG).show();
             }
         };
         connectivityManager.requestNetwork(request, networkCallback, 15000);

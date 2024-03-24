@@ -10,7 +10,10 @@ TODO: display video stream from rollei camera
     DONE: app wide preferences using SharedPreferences, look up an example and implement.
     
     next:    
+    
     TODO: display camera stream in preview
+        TODO: access camera stream
+
     TODO: create an ssh tunnel from android to virtual machine (obsbox)
     TODO: publish stream to obsbox
 
