@@ -19,11 +19,6 @@
             app:resize_mode="zoom"
             app:show_buffering="when_playing"
             app:show_shuffle_button="true"/>
-<!--        <VideoView-->
-<!--            android:id="@+id/idVideoView"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="300dp" />-->
-
         <Button
             android:id="@+id/buttonConnectCam"
             android:layout_width="match_parent"
