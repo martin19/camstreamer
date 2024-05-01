@@ -12,11 +12,18 @@ TODO: display video stream from rollei camera
     next:    
     
     DONE: display camera stream in preview
-        TODO: make stream start reliably
+        DONE: make stream start reliably
             ANALYSIS: nordvpn causes EPERM error, need to deactivate nord vpn connection before using app.
             https://stackoverflow.com/questions/74263177/exoplayer-not-sending-rtsp-request
-        -> stream does not start reliably, what is required? it works with ffplay
-        -> crashes after a few seconds, debug this.
+        DONE: crashes after a few seconds, debug this.        
+            ANALYSIS: layoutSizeChange event (zero width and height) occurs after a few seconds
+                SOLUTION:
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:resize_mode="zoom"
+        TODO: player is killed when orientation changes
+        TODO: playback delay is too high, maybe change buffering (zero delay)
+        
 
     TODO: tunnel any rtsp video stream from src (wifi) to dst (public net) 
         - use ffmpeg to read the stream

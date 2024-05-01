@@ -23,21 +23,33 @@ import androidx.annotation.OptIn;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.media3.common.MediaItem;
+import androidx.media3.common.PlaybackException;
+import androidx.media3.common.Player;
+import androidx.media3.common.util.Log;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.rtsp.RtspMediaSource;
+import androidx.media3.exoplayer.util.EventLogger;
 import androidx.media3.ui.PlayerView;
 import androidx.preference.PreferenceManager;
 
 import com.randomher0.databinding.FragmentCameraBinding;
 
+import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class CameraFragment extends Fragment {
+
+    public static final Logger Log = Logger.getLogger(CameraFragment.class.getName());
 
     private FragmentCameraBinding binding;
 
     private ConnectivityManager connectivityManager;
 
     private ConnectivityManager.NetworkCallback networkCallback;
+
+    private PlayerView playerView;
 
     private ExoPlayer exoPlayer;
 
@@ -49,7 +61,6 @@ public class CameraFragment extends Fragment {
 
         binding = FragmentCameraBinding.inflate(inflater, container, false);
         return binding.getRoot();
-
     }
 
     @Override
@@ -94,7 +105,8 @@ public class CameraFragment extends Fragment {
 
     @OptIn(markerClass = UnstableApi.class) private void displayLiveStream(Network network) {
         Context context = getActivity().getApplicationContext();
-        PlayerView playerView = getActivity().findViewById(R.id.player_view);
+
+        playerView = getActivity().findViewById(R.id.player_view);
 
         final boolean localTest = false;
         Uri uri;
@@ -112,8 +124,27 @@ public class CameraFragment extends Fragment {
             uri = Uri.parse("rtsp://192.168.42.1:554/live");
         }
 
+        playerView.setUseController(true);
+        playerView.requestFocus();
         playerView.setPlayer(exoPlayer);
+        exoPlayer.addListener(new Player.Listener() {
+            @Override
+            public void onPlaybackStateChanged(int playbackState) {
+                Log.log(Level.INFO, "playback state "+String.valueOf(playbackState));
+            }
+
+            @Override
+            public void onIsPlayingChanged(boolean isPlaying) {
+                Log.log(Level.INFO, "isPlaying changed");
+            }
+
+            @Override
+            public void onSurfaceSizeChanged(int width, int height) {
+                Log.log(Level.INFO, String.format(Locale.ENGLISH,"surfaceSizeChanged %d/%d",width, height));
+            }
+        });
         exoPlayer.setMediaItem(MediaItem.fromUri(uri));
+        exoPlayer.addAnalyticsListener(new EventLogger());
         exoPlayer.prepare();
     }
 
@@ -166,7 +197,7 @@ public class CameraFragment extends Fragment {
                 Toast.makeText(context, "network is unavailable", Toast.LENGTH_LONG).show();
             }
         };
-        connectivityManager.requestNetwork(request, networkCallback, 15000);
+        connectivityManager.requestNetwork(request, networkCallback, 35000);
 
         // Release the request when done.
         //connectivityManager.unregisterNetworkCallback(networkCallback);
