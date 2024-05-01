@@ -24,11 +24,8 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.util.UnstableApi;
-import androidx.media3.datasource.DefaultDataSource;
-import androidx.media3.datasource.cronet.CronetDataSource;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.rtsp.RtspMediaSource;
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
 import androidx.media3.ui.PlayerView;
 import androidx.preference.PreferenceManager;
 
@@ -37,6 +34,12 @@ import com.randomher0.databinding.FragmentCameraBinding;
 public class CameraFragment extends Fragment {
 
     private FragmentCameraBinding binding;
+
+    private ConnectivityManager connectivityManager;
+
+    private ConnectivityManager.NetworkCallback networkCallback;
+
+    private ExoPlayer exoPlayer;
 
     @Override
     public View onCreateView(
@@ -63,8 +66,7 @@ public class CameraFragment extends Fragment {
     }
 
     public void connectWifi() {
-        //connectCam1();
-        connectCam2();
+        connectCam();
         //testPreferences();
     }
 
@@ -91,41 +93,28 @@ public class CameraFragment extends Fragment {
     }
 
     @OptIn(markerClass = UnstableApi.class) private void displayLiveStream(Network network) {
-//        VideoView videoView = getActivity().findViewById(R.id.idVideoView);
-//        MediaController mediaController = new MediaController(getActivity());
-//        mediaController.setAnchorView(videoView);
-//        Uri uri = Uri.parse("rtsp://192.168.42.1:554/live");
-//        videoView.setMediaController(mediaController);
-//        videoView.setVideoURI(uri);
-//        videoView.requestFocus();
-//        videoView.start();
-
         Context context = getActivity().getApplicationContext();
-
-        // Given a CronetEngine and Executor, build a CronetDataSource.Factory.
-//        CronetDataSource.Factory cronetDataSourceFactory =
-//                new CronetDataSource.Factory(cronetEngine, executor);
-//
-//        DefaultDataSource.Factory dataSourceFactory =
-//                new DefaultDataSource.Factory(
-//                        context,
-//                        /* baseDataSourceFactory= */ cronetDataSourceFactory);
-
         PlayerView playerView = getActivity().findViewById(R.id.player_view);
-        ExoPlayer player = new ExoPlayer.Builder(context)
+
+        final boolean localTest = false;
+        Uri uri;
+
+        if(localTest) {
+            exoPlayer = new ExoPlayer.Builder(context).build();
+            uri = Uri.parse("android.resource://"+getActivity().getPackageName()+"/"+R.raw.globe);
+        } else {
+            exoPlayer = new ExoPlayer.Builder(context)
                 .setMediaSourceFactory(new RtspMediaSource.Factory()
-                        .setTimeoutMs(1000000)
                         .setDebugLoggingEnabled(true)
                         .setSocketFactory(network.getSocketFactory())
-                )
-//        .setMediaSourceFactory(
-//                new DefaultMediaSourceFactory(context)
-//                .setDataSourceFactory(dataSourceFactory))
+                        .setTimeoutMs(5000))
                 .build();
-        playerView.setPlayer(player);
-        Uri rtspUri = Uri.parse("rtsp://192.168.42.1:554/live");
-        player.setMediaItem(MediaItem.fromUri(rtspUri));
-        player.prepare();
+            uri = Uri.parse("rtsp://192.168.42.1:554/live");
+        }
+
+        playerView.setPlayer(exoPlayer);
+        exoPlayer.setMediaItem(MediaItem.fromUri(uri));
+        exoPlayer.prepare();
     }
 
     private void testPreferences() {
@@ -137,76 +126,7 @@ public class CameraFragment extends Fragment {
                 .show();
     }
 
-    public void connectCam1() {
-//        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-//        String wifiSsid = sharedPreferences.getString("wifi_ssid", "Action one_5656_5G");
-//        String wifiPassword = sharedPreferences.getString("wifi_password", "12345678");
-//
-//        final WifiNetworkSuggestion suggestion1 =
-//                new WifiNetworkSuggestion.Builder()
-//                        .setSsid(wifiSsid)
-//                        .setIsAppInteractionRequired(true) // Optional (Needs location permission)
-//                        .build();
-//
-//        final WifiNetworkSuggestion suggestion2 =
-//                new WifiNetworkSuggestion.Builder()
-//                        .setSsid("test2")
-//                        .setIsAppInteractionRequired(true) // Optional (Needs location permission)
-//                        .build();
-//
-//        final WifiNetworkSuggestion suggestion3 =
-//                new WifiNetworkSuggestion.Builder()
-//                        .setSsid("test3")
-//                        .setIsAppInteractionRequired(true) // Optional (Needs location permission)
-//                        .build();
-//
-//
-//        final List<WifiNetworkSuggestion> suggestionsList = new ArrayList<>();
-//        suggestionsList.add(suggestion1);
-//        suggestionsList.add(suggestion2);
-//        suggestionsList.add(suggestion3);
-//
-//        WifiManager wifiManager = (WifiManager)getSystemService(WIFI_SERVICE);
-//        final int status = wifiManager.addNetworkSuggestions(suggestionsList);
-//        if (status != WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS) {
-//            //TODO:
-//            // do error handling here…
-//        }
-//
-//        // Optional (Wait for post connection broadcast to one of your suggestions)
-//        final IntentFilter intentFilter = new IntentFilter(WifiManager.ACTION_WIFI_NETWORK_SUGGESTION_POST_CONNECTION);
-//
-//        final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-//            @Override
-//            public void onReceive(Context context, Intent intent) {
-//                if (!intent.getAction().equals(
-//                        WifiManager.ACTION_WIFI_NETWORK_SUGGESTION_POST_CONNECTION)) {
-//                    return;
-//                }
-//                //TODO:
-//                // do post connect processing here...
-//            }
-//        };
-//        getApplicationContext().registerReceiver(broadcastReceiver, intentFilter);
-
-//        //remember current configuration
-//        //WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-//
-//
-////        String wifiSsid = sharedPreferences.getString("wifi_ssid", "Action one_5656_5G");
-////        String wifiPassword = sharedPreferences.getString("wifi_password", "12345678");
-//
-//        WifiConfiguration wifiConfiguration = new WifiConfiguration();
-//        wifiConfiguration.SSID = String.format("\"%s\"", wifiSsid);
-//        wifiConfiguration.preSharedKey = String.format("\"%s\"", wifiPassword);
-//
-//        int netId = wifiManager.addNetwork(wifiConfiguration);
-//        wifiManager.disconnect();
-//        wifiManager.enableNetwork(netId, true);
-//        wifiManager.reconnect();
-    }
-
-    public void connectCam2() {
+    public void connectCam() {
         Context context = getActivity().getApplicationContext();
 
         final NetworkSpecifier specifier =
@@ -223,10 +143,9 @@ public class CameraFragment extends Fragment {
                         .setNetworkSpecifier(specifier)
                         .build();
 
-        final ConnectivityManager connectivityManager = (ConnectivityManager)
-                context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
-        final ConnectivityManager.NetworkCallback networkCallback = new ConnectivityManager.NetworkCallback() {
+        networkCallback = new ConnectivityManager.NetworkCallback() {
 
             @Override
             public void onAvailable(@NonNull Network network) {
@@ -235,14 +154,10 @@ public class CameraFragment extends Fragment {
 
                 FragmentActivity activity = getActivity();
                 if(activity == null) return;
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        displayLiveStream(network);
-                    }
+                activity.runOnUiThread(() -> {
+                   displayLiveStream(network);
+                    Toast.makeText(context, "streaming.", Toast.LENGTH_LONG).show();
                 });
-
-                Toast.makeText(context, "streaming.", Toast.LENGTH_LONG).show();
             }
 
             @Override

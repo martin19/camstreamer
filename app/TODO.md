@@ -11,11 +11,21 @@ TODO: display video stream from rollei camera
     
     next:    
     
-    TODO: display camera stream in preview
-        TODO: access camera stream
+    DONE: display camera stream in preview
+        TODO: make stream start reliably
+            ANALYSIS: nordvpn causes EPERM error, need to deactivate nord vpn connection before using app.
+            https://stackoverflow.com/questions/74263177/exoplayer-not-sending-rtsp-request
+        -> stream does not start reliably, what is required? it works with ffplay
+        -> crashes after a few seconds, debug this.
 
+    TODO: tunnel any rtsp video stream from src (wifi) to dst (public net) 
+        - use ffmpeg to read the stream
+        - optinally recode it   
+        - send the data to remote server (in our case the destination needs to be)
+
+    TODO: access camera stream data
     TODO: create an ssh tunnel from android to virtual machine (obsbox)
-    TODO: publish stream to obsbox
+    
 
     later:
     investigate ambarella-api-pytools
@@ -29,3 +39,15 @@ TODO: display video stream from rollei camera
 [4] https://stackoverflow.com/questions/53620234/android-wifimanager-enablenetwork-returning-false
 [5] https://developer.android.com/develop/connectivity/wifi/wifi-suggest
 [6] https://developer.android.com/guide/navigation/design
+[7] https://stackoverflow.com/questions/54668864/mediacodec-output-buffer-doesnt-generate-correct-output-when-its-input-surface
+
+snippets:
+
+final Handler handler = new Handler(Looper.getMainLooper());
+handler.postDelayed(new Runnable() {
+    @Override
+    public void run() {
+        //Do something after 3000ms
+        displayLiveStream(network);
+    }
+}, 3000);

@@ -59,6 +59,7 @@ dependencies {
     implementation("androidx.compose.material3:material3")
 
     implementation("com.arthenica:ffmpeg-kit-full:6.0-2")
+    implementation("com.jcraft:jsch:0.1.55")
     implementation("androidx.preference:preference-ktx:1.2.0")
 
 
