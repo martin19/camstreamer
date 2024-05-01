@@ -27,6 +27,7 @@ import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.common.util.Log;
 import androidx.media3.common.util.UnstableApi;
+import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.rtsp.RtspMediaSource;
 import androidx.media3.exoplayer.util.EventLogger;
@@ -34,6 +35,7 @@ import androidx.media3.ui.PlayerView;
 import androidx.preference.PreferenceManager;
 
 import com.randomher0.databinding.FragmentCameraBinding;
+import com.randomher0.ui.main.core.PreviewPlayer;
 
 import java.util.Locale;
 import java.util.logging.Level;
@@ -45,20 +47,11 @@ public class CameraFragment extends Fragment {
 
     private FragmentCameraBinding binding;
 
-    private ConnectivityManager connectivityManager;
-
-    private ConnectivityManager.NetworkCallback networkCallback;
-
-    private PlayerView playerView;
-
-    private ExoPlayer exoPlayer;
-
     @Override
     public View onCreateView(
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-
         binding = FragmentCameraBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -66,7 +59,11 @@ public class CameraFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        //displayLiveStream();
+
+        if(PreviewPlayer.getInstance().getExoPlayer() != null) {
+            PlayerView playerView = getActivity().findViewById(R.id.player_view);
+            playerView.setPlayer(PreviewPlayer.getInstance().getExoPlayer());
+        }
 
         binding.buttonConnectCam.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -106,23 +103,30 @@ public class CameraFragment extends Fragment {
     @OptIn(markerClass = UnstableApi.class) private void displayLiveStream(Network network) {
         Context context = getActivity().getApplicationContext();
 
-        playerView = getActivity().findViewById(R.id.player_view);
+        PlayerView playerView = getActivity().findViewById(R.id.player_view);
 
         final boolean localTest = false;
         Uri uri;
 
         if(localTest) {
-            exoPlayer = new ExoPlayer.Builder(context).build();
+            PreviewPlayer.getInstance().setExoPlayer(new ExoPlayer.Builder(context).build());
             uri = Uri.parse("android.resource://"+getActivity().getPackageName()+"/"+R.raw.globe);
         } else {
-            exoPlayer = new ExoPlayer.Builder(context)
+            PreviewPlayer.getInstance().setExoPlayer(new ExoPlayer.Builder(context)
                 .setMediaSourceFactory(new RtspMediaSource.Factory()
                         .setDebugLoggingEnabled(true)
                         .setSocketFactory(network.getSocketFactory())
-                        .setTimeoutMs(5000))
-                .build();
+                        .setTimeoutMs(5000)
+                )
+                .setLoadControl(new DefaultLoadControl.Builder()
+                        .setBufferDurationsMs(100, 100, 100, 100)
+                        .build()
+                )
+                .build());
             uri = Uri.parse("rtsp://192.168.42.1:554/live");
         }
+
+        ExoPlayer exoPlayer = PreviewPlayer.getInstance().getExoPlayer();
 
         playerView.setUseController(true);
         playerView.requestFocus();
@@ -174,9 +178,9 @@ public class CameraFragment extends Fragment {
                         .setNetworkSpecifier(specifier)
                         .build();
 
-        connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
-        networkCallback = new ConnectivityManager.NetworkCallback() {
+        ConnectivityManager.NetworkCallback networkCallback = new ConnectivityManager.NetworkCallback() {
 
             @Override
             public void onAvailable(@NonNull Network network) {
@@ -184,9 +188,9 @@ public class CameraFragment extends Fragment {
                 Toast.makeText(context, "network is available", Toast.LENGTH_LONG).show();
 
                 FragmentActivity activity = getActivity();
-                if(activity == null) return;
+                if (activity == null) return;
                 activity.runOnUiThread(() -> {
-                   displayLiveStream(network);
+                    displayLiveStream(network);
                     Toast.makeText(context, "streaming.", Toast.LENGTH_LONG).show();
                 });
             }

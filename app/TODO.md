@@ -1,35 +1,31 @@
 DONE: add static video player
-
-TODO: display video stream from rollei camera
-
+DONE: display video stream from rollei camera
     DONE: add static configuration values (see [1])
     DONE: add configuration fragment to main activity 
     DONE: create navigation concept [5].
     DONE: connect to camera network
     DONE: use NetworkRequest api.
     DONE: app wide preferences using SharedPreferences, look up an example and implement.
-    
-    next:    
-    
     DONE: display camera stream in preview
         DONE: make stream start reliably
             ANALYSIS: nordvpn causes EPERM error, need to deactivate nord vpn connection before using app.
             https://stackoverflow.com/questions/74263177/exoplayer-not-sending-rtsp-request
         DONE: crashes after a few seconds, debug this.        
             ANALYSIS: layoutSizeChange event (zero width and height) occurs after a few seconds
-                SOLUTION:
+            ->
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 app:resize_mode="zoom"
-        TODO: player is killed when orientation changes
-        TODO: playback delay is too high, maybe change buffering (zero delay)
-        
+        DONE: player is killed when orientation changes
+            -> made exoplayer a singleton: PreviewPlayer
+        DONE: playback delay is too high, maybe change buffering (zero latency)
+            -> parametrize loadControl with exoplayer, this is experimental and potentially dangerous (see [8])
+            probably zero latency must be configured on the camera side. now the latency seems to be around 1s
 
-    TODO: tunnel any rtsp video stream from src (wifi) to dst (public net) 
-        - use ffmpeg to read the stream
-        - optinally recode it   
-        - send the data to remote server (in our case the destination needs to be)
-
+TODO: tunnel any rtsp video stream from src (wifi) to dst (public net) 
+    - use ffmpeg to read the stream
+    - optinally recode it   
+    - send the data to remote server (in our case the destination needs to be)
     TODO: access camera stream data
     TODO: create an ssh tunnel from android to virtual machine (obsbox)
     
@@ -47,6 +43,7 @@ TODO: display video stream from rollei camera
 [5] https://developer.android.com/develop/connectivity/wifi/wifi-suggest
 [6] https://developer.android.com/guide/navigation/design
 [7] https://stackoverflow.com/questions/54668864/mediacodec-output-buffer-doesnt-generate-correct-output-when-its-input-surface
+[8] https://stackoverflow.com/questions/69748951/how-to-get-low-latency-in-exoplayer-rtsp-live-streaming-on-android
 
 snippets:
 
