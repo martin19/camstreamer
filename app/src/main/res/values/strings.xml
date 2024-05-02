@@ -19,4 +19,11 @@
     <string name="password_title">WiFi Password</string>
     <string name="target_network_name">Target Network</string>
     <string name="target_network_name_summary">The target network interface to restream the video to. %s</string>
+    <string name="ssh_user">SSH User</string>
+    <string name="ssh_pass">SSH Password</string>
+    <string name="ssh_host">SSH Host</string>
+    <string name="ssh_private_key">SSH Private Key File</string>
+    <string name="ssh_public_key">SSH Public Key File</string>
+    <string name="connectSsh">connect ssh</string>
+
 </resources>

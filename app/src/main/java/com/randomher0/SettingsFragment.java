@@ -1,8 +1,15 @@
 package com.randomher0;
 
+import static android.app.Activity.RESULT_OK;
+
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
+import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
+import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
 import java.net.InetAddress;
@@ -13,14 +20,15 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class SettingsFragment extends PreferenceFragmentCompat {
 
+public class SettingsFragment extends PreferenceFragmentCompat {
     static HashMap<String, String> networkInterfaceTypes =  new HashMap();
     static {
         networkInterfaceTypes = new HashMap<>();
@@ -76,6 +84,54 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             listPreference.setEntryValues(targetNetworkNames.toArray(new String[0]));
         } catch (SocketException e) {
             throw new RuntimeException(e);
+        }
+
+        //ssh private key file
+        Preference sshPrivateKeyFile = (Preference) findPreference("ssh_private_key_file");
+        sshPrivateKeyFile.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                Intent intent = new Intent()
+                        .setType("*/*")
+                        .setAction(Intent.ACTION_GET_CONTENT);
+                startActivityForResult(Intent.createChooser(intent, "Select a file (e.g. ~/.ssh/id_rsa)"), 123);
+                return true;
+            }
+        });
+
+        //ssh public key file
+        Preference sshPublicKeyFile = (Preference) findPreference("ssh_public_key_file");
+        sshPublicKeyFile.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                Intent intent = new Intent()
+                        .setType("*/*")
+                        .setAction(Intent.ACTION_GET_CONTENT);
+                startActivityForResult(Intent.createChooser(intent, "Select a file (e.g. ~/.ssh/id_rsa.pub)"), 124);
+                return true;
+            }
+        });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == 123 && resultCode == RESULT_OK) {
+            Uri selectedfile = Objects.requireNonNull(data).getData();
+            EditTextPreference preference = findPreference("ssh_private_key_file");
+            if(preference != null && selectedfile != null) {
+                preference.setText(selectedfile.toString());
+            }
+        }
+
+        if(requestCode == 124 && resultCode == RESULT_OK) {
+            Uri selectedfile = Objects.requireNonNull(data).getData();
+            EditTextPreference preference = findPreference("ssh_public_key_file");
+            if(preference != null && selectedfile != null) {
+                preference.setText(selectedfile.toString());
+            }
         }
     }
 }

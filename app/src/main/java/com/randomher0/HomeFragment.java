@@ -10,6 +10,8 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.randomher0.databinding.FragmentHomeBinding;
+import com.randomher0.ui.main.core.Restream;
+import com.randomher0.ui.main.core.RestreamOptions;
 
 public class HomeFragment extends Fragment {
 
@@ -42,6 +44,14 @@ public class HomeFragment extends Fragment {
             public void onClick(View view) {
                 NavHostFragment.findNavController(HomeFragment.this)
                         .navigate(R.id.action_to_Settings);
+            }
+        });
+
+        binding.buttonConnectSsh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Restream restream = new Restream(binding.getRoot().getContext(), new RestreamOptions());
+                restream.initForwarding();
             }
         });
     }
