@@ -22,12 +22,16 @@ DONE: display video stream from rollei camera
             -> parametrize loadControl with exoplayer, this is experimental and potentially dangerous (see [8])
             probably zero latency must be configured on the camera side. now the latency seems to be around 1s
 
-TODO: tunnel any rtsp video stream from src (wifi) to dst (public net) 
+TODO: tunnel any rtsp video stream from src (wifi) to dst (public net)
+    DONE: create an ssh tunnel from android to obsbox
+    TODO: restream the webcam stream to local port
+        -> "ffmpeg -i /dev/video0 -c:v libx264 -f rtsp rtsp://127.0.0.1:8554/action-one-1"
+    
     - use ffmpeg to read the stream
     - optinally recode it   
     - send the data to remote server (in our case the destination needs to be)
     TODO: access camera stream data
-    TODO: create an ssh tunnel from android to virtual machine (obsbox)
+    
     
 
     later:

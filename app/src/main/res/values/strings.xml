@@ -24,6 +24,9 @@
     <string name="ssh_host">SSH Host</string>
     <string name="ssh_private_key">SSH Private Key File</string>
     <string name="ssh_public_key">SSH Public Key File</string>
+    <string name="ssh_port_forwarding">SSH Port forwardings</string>
+    <string name="ssh_port_forwarding_summary">Configure ssh port forwarding,(format: local_port_1:remote_host_1:remote_port_1, … , local_port_n:remote_host_n:remote_port_n): %s</string>
+
     <string name="connectSsh">connect ssh</string>
 
 </resources>

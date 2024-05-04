@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Restream {
@@ -72,6 +73,7 @@ public class Restream {
             String sshPublicKeyFile = sharedPreferences.getString("ssh_public_key_file", "");
             String sshUser = sharedPreferences.getString("ssh_user", "");
             String sshHost = sharedPreferences.getString("ssh_host", "");
+            String sshPortForwarding = sharedPreferences.getString("ssh_port_forwarding", "");
 
             Uri publicKeyUri = Uri.parse(sshPublicKeyFile);
             String publicKey = readTextfileFromUri(publicKeyUri);
@@ -87,38 +89,19 @@ public class Restream {
 //            session.setHostKeyRepository(new BlindHostKeyRepository());
             session.connect();
 
-            // Establish a shell channel to receive messages from serveo
-            ChannelExec channel = (ChannelExec) session.openChannel("exec");
-            channel.setCommand("ls -Al");
-            InputStream in=channel.getInputStream();
-
-            channel.connect();
-
-            byte[] tmp=new byte[1024];
-            while(true){
-                while(in.available()>0){
-                    int i=in.read(tmp, 0, 1024);
-                    if(i<0)break;
-                    System.out.print(new String(tmp, 0, i));
+            // create port forwardings
+            if(!sshPortForwarding.trim().isEmpty()) {
+                String[] sshPortForwardings = sshPortForwarding.trim().split(",");
+                for (String portForwarding : sshPortForwardings) {
+                    if(portForwarding.split(":").length != 3) continue;
+                    int lport=Integer.parseInt(portForwarding.substring(0, portForwarding.indexOf(':')));
+                    portForwarding=portForwarding.substring(portForwarding.indexOf(':')+1);
+                    String rhost=portForwarding.substring(0, portForwarding.indexOf(':'));
+                    int rport=Integer.parseInt(portForwarding.substring(portForwarding.indexOf(':')+1));
+                    int assinged_port = session.setPortForwardingL(null, lport, rhost, rport, null);
+                    Log.log(Level.INFO,  "localhost:"+assinged_port+" -> "+rhost+":"+rport);
                 }
-                if(channel.isClosed()){
-                    if(in.available()>0) continue;
-                    System.out.println("exit-status: "+channel.getExitStatus());
-                    break;
-                }
-                try{Thread.sleep(1000);}catch(Exception ee){}
             }
-            channel.disconnect();
-            session.disconnect();
-
-//            cc.setPty(false);
-//            cc.setInputStream(System.in);
-//            cc.setOutputStream(System.out);
-//            cc.setExtOutputStream(System.err);
-//            cc.connect();
-
-            // Now open a remote forward
-//            session.setPortForwardingR(null, 80, "localhost", 3000);
         } catch (Exception e) {
             e.printStackTrace();
         }

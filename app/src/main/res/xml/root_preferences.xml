@@ -17,7 +17,7 @@
             android:inputType="textPassword"
         />
     </PreferenceCategory>
-    <PreferenceCategory app:title="Target Network">
+    <PreferenceCategory app:title="Restream Connection">
         <ListPreference
             app:key="target_network_name"
             app:summary="@string/target_network_name_summary"
@@ -43,6 +43,12 @@
             android:inputType="textPassword"
         />
         <EditTextPreference
+            app:key="ssh_port_forwarding"
+            app:title="@string/ssh_port_forwarding"
+            app:summary="@string/ssh_port_forwarding_summary"
+            app:defaultValue="3390:127.0.0.1:3389,8554:127.0.0.1:8554"
+        />
+        <EditTextPreference
             app:key="ssh_public_key_file"
             app:title="@string/ssh_public_key"
             app:useSimpleSummaryProvider="true"
@@ -54,6 +60,8 @@
             app:useSimpleSummaryProvider="true"
             app:defaultValue=""
         />
+    </PreferenceCategory>
+    <PreferenceCategory app:title="Stream Configuration">
 
     </PreferenceCategory>
 
