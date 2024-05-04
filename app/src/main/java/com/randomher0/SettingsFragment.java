@@ -113,6 +113,20 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 return true;
             }
         });
+
+        //demo video file
+        Preference demoVideoFile = (Preference) findPreference("demo_video_file");
+        demoVideoFile.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                Intent intent = new Intent()
+                        .setType("*/*")
+                        .setAction(Intent.ACTION_GET_CONTENT);
+                startActivityForResult(Intent.createChooser(intent, "Select a video file"), 125);
+                return true;
+            }
+        });
     }
 
     @Override
@@ -129,6 +143,14 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         if(requestCode == 124 && resultCode == RESULT_OK) {
             Uri selectedfile = Objects.requireNonNull(data).getData();
             EditTextPreference preference = findPreference("ssh_public_key_file");
+            if(preference != null && selectedfile != null) {
+                preference.setText(selectedfile.toString());
+            }
+        }
+
+        if(requestCode == 125 && resultCode == RESULT_OK) {
+            Uri selectedfile = Objects.requireNonNull(data).getData();
+            EditTextPreference preference = findPreference("demo_video_file");
             if(preference != null && selectedfile != null) {
                 preference.setText(selectedfile.toString());
             }

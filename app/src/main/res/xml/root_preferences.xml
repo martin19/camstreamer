@@ -39,14 +39,14 @@
             app:key="ssh_pass"
             app:title="@string/ssh_pass"
             app:useSimpleSummaryProvider="true"
-            app:defaultValue=""
             android:inputType="textPassword"
+            app:defaultValue=""
         />
         <EditTextPreference
             app:key="ssh_port_forwarding"
             app:title="@string/ssh_port_forwarding"
             app:summary="@string/ssh_port_forwarding_summary"
-            app:defaultValue="3390:127.0.0.1:3389,8554:127.0.0.1:8554"
+            app:defaultValue="8554:127.0.0.1:8554"
         />
         <EditTextPreference
             app:key="ssh_public_key_file"
@@ -62,7 +62,12 @@
         />
     </PreferenceCategory>
     <PreferenceCategory app:title="Stream Configuration">
-
+        <EditTextPreference
+            app:key="demo_video_file"
+            app:title="@string/demo_video_file"
+            app:useSimpleSummaryProvider="true"
+            app:defaultValue=""
+            />
     </PreferenceCategory>
 
 </PreferenceScreen>

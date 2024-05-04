@@ -28,5 +28,6 @@
     <string name="ssh_port_forwarding_summary">Configure ssh port forwarding,(format: local_port_1:remote_host_1:remote_port_1, … , local_port_n:remote_host_n:remote_port_n): %s</string>
 
     <string name="connectSsh">connect ssh</string>
+    <string name="demo_video_file">Demo video file</string>
 
 </resources>
