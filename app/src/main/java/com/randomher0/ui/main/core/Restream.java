@@ -106,8 +106,6 @@ public class Restream {
                     Log.log(Level.INFO,  "localhost:"+assinged_port+" -> "+rhost+":"+rport);
                 }
             }
-
-            startStream();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -128,9 +126,11 @@ public class Restream {
         String inputVideoPath = FFmpegKitConfig.getSafParameterForRead(context, safUri);
         //String filename = "/storage/emulated/0/Documents/globe.mp4";
         //ffmpeg -i /dev/video0 -c:v libx264 -f rtsp rtsp://127.0.0.1:8554/tuxedo-front-1
-        FFmpegSession session = FFmpegKit.execute(String.format("-stream_loop -1 -i %s -f rtsp rtsp://127.0.0.1:28554/tuxedo-front-1",
+//        FFmpegSession session = FFmpegKit.execute(String.format("-stream_loop -1 -i %s -f rtsp rtsp://127.0.0.1:28554/tuxedo-front-1",
+//                inputVideoPath));
+
+        FFmpegSession session = FFmpegKit.execute(String.format("-i rtsp://192.168.42.1:554/live -f rtsp rtsp://127.0.0.1:28554/tuxedo-front-1",
                 inputVideoPath));
-        //FFmpegSession session = FFmpegKit.execute(String.format("-f android_camera -i -c:v libx264 -f rtsp rtsp://localhost:8554/tuxedo-front-1",
 
         if (ReturnCode.isSuccess(session.getReturnCode())) {
             // SUCCESS
@@ -148,6 +148,11 @@ public class Restream {
 
     public void stop() {
 
+    }
+
+    public void start() {
+        initForwarding();
+        startStream();
     }
 }
 

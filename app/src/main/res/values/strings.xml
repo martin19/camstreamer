@@ -29,5 +29,6 @@
 
     <string name="connectSsh">connect ssh</string>
     <string name="demo_video_file">Demo video file</string>
+    <string name="connectCamera">Connect camera</string>
 
 </resources>

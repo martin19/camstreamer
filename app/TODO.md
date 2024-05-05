@@ -49,6 +49,7 @@ TODO: tunnel any rtsp video stream from src (wifi) to dst (public net) (see [9])
 [7] https://stackoverflow.com/questions/54668864/mediacodec-output-buffer-doesnt-generate-correct-output-when-its-input-surface
 [8] https://stackoverflow.com/questions/69748951/how-to-get-low-latency-in-exoplayer-rtsp-live-streaming-on-android
 [9] https://github.com/arthenica/ffmpeg-kit/tree/main/android
+[10] https://stackoverflow.com/questions/35765077/correct-way-to-get-the-instance-of-application-in-android
 
 snippets:
 
