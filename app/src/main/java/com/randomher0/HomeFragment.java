@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.randomher0.databinding.FragmentHomeBinding;
+import com.randomher0.rtsp.RTSPClient;
 import com.randomher0.ui.main.core.Camera;
 import com.randomher0.ui.main.core.Restream;
 import com.randomher0.ui.main.core.RestreamOptions;
@@ -47,6 +48,11 @@ public class HomeFragment extends Fragment {
         binding.buttonConnectSsh.setOnClickListener(view13 -> {
             Restream restream = new Restream(binding.getRoot().getContext(), new RestreamOptions());
             restream.start();
+        });
+
+        binding.buttonRestream.setOnClickListener(view13 -> {
+            RTSPClient rtspClient = new RTSPClient();
+            rtspClient.start();
         });
     }
 

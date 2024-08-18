@@ -44,6 +44,12 @@
                 android:layout_height="wrap_content"
                 android:text="@string/connectSsh"
                 />
+
+            <Button
+                android:id="@+id/buttonRestream"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/restream" />
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
