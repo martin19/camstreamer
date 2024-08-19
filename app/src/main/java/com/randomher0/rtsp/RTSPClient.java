@@ -17,7 +17,49 @@ import java.net.Socket;
 
 public class RTSPClient {
 
+    /*
+    DESCRIBE rtsp://localhost:8554/live.stream RTSP/1.0
+    CSeq: 1
+    User-Agent: Lavf58.76.100
+
+    v=0
+    o=- 0 0 IN IP4 127.0.0.1
+    s=No Name
+    c=IN IP4 0.0.0.0
+    t=0 0
+    m=video 0 RTP/AVP 96
+    a=control:rtsp://localhost:8554/live.stream/trackID=0
+    a=rtpmap:96 MP4V-ES/90000
+    a=fmtp:96 config=000001B001000001B58913000001000000012000C48D8800F528045A1443000001B24C61766335382E3133342E313030; profile-level-id=1
+     */
+
+    String sdp;
+
     public RTSPClient() {
+    }
+
+    public RTSPResponse readResponse(BufferedReader reader) throws Exception {
+        RTSPStatusCode rtspStatusCode = null;
+        String responseLine;
+        StringBuilder response = new StringBuilder();
+
+        while ((responseLine = reader.readLine()) != null) {
+            if(responseLine.contains("RTSP/1.0 200 OK")) {
+                rtspStatusCode = RTSPStatusCode.OK;
+            }
+
+            response.append(responseLine).append("\n");
+            // RTSP responses typically end with a blank line, break the loop when it's reached
+            if (responseLine.trim().isEmpty()) {
+                break;
+            }
+        }
+
+        RTSPResponse rtspResponse = new RTSPResponse();
+        rtspResponse.setStatusCode(rtspStatusCode);
+        rtspResponse.setBody(response.toString());
+
+        return rtspResponse;
     }
 
     private void sendRTSPCommand(BufferedWriter writer, String command) {
@@ -60,10 +102,14 @@ public class RTSPClient {
 
                     // Step 3: Send RTSP commands to the source server
                     sendRTSPCommand(sourceWriter, "OPTIONS " + sourceRTSPUrl + " RTSP/1.0\r\nCSeq: 1\r\nUser-Agent: Lavf58.76.100\r\n");
-                    printRTSPResponse(sourceReader);
+                    RTSPResponse rtspResponseOptions = readResponse(sourceReader);
 
-                    sendRTSPCommand(sourceWriter, "DESCRIBE " + sourceRTSPUrl + " RTSP/1.0\r\nCSeq: 2");
-                    printRTSPResponse(sourceReader);
+                    // Step 3: Send RTSP commands to the source server
+                    sendRTSPCommand(sourceWriter, "DESCRIBE " + sourceRTSPUrl + " RTSP/1.0\r\nCSeq: 2\r\nUser-Agent: Lavf58.76.100\r\n");
+                    {
+                        RTSPResponse rtspResponse = readResponse(sourceReader);
+                        RTSPDescribeResponse rtspDescribeResponse = new RTSPDescribeResponse(rtspResponse);
+                    }
 
                     /*
                     // Parse and forward SDP information and setup streams on destination
@@ -85,6 +131,13 @@ public class RTSPClient {
                 }
             }
         });
+
+        /*
+        TODO: implement methods and appropriate response types
+        PLAY              C->S             P,S        required
+        SETUP             C->S             S          required
+        TEARDOWN          C->S             P,S        required
+         */
 
         thread.start();
 
