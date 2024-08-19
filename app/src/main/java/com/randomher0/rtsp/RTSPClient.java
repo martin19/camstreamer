@@ -134,6 +134,8 @@ public class RTSPClient {
 
         /*
         TODO: implement methods and appropriate response types
+        https://www.rfc-editor.org/rfc/rfc2326.html
+
         PLAY              C->S             P,S        required
         SETUP             C->S             S          required
         TEARDOWN          C->S             P,S        required
