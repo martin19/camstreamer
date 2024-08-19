@@ -27,6 +27,14 @@ TODO: tunnel any rtsp video stream from src (wifi) to dst (public net) (see [9])
     TODO: restream the webcam stream to local port
         -> "ffmpeg -i /dev/video0 -c:v libx264 -f rtsp rtsp://127.0.0.1:8554/action-one-1"
     
+    TODO: implement simple RTSP/RTP code to restream from source to destination.
+        //rtsp://127.0.0.1:8554/action-one-1
+        TODO: implement methods and appropriate response types
+        https://www.rfc-editor.org/rfc/rfc2326.html
+        PLAY              C->S             P,S        required
+        SETUP             C->S             S          required
+        TEARDOWN          C->S             P,S        required
+
     - use ffmpeg to read the stream
     - optinally recode it   
     - send the data to remote server (in our case the destination needs to be)

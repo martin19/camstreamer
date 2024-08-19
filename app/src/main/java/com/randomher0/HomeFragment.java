@@ -10,7 +10,7 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.randomher0.databinding.FragmentHomeBinding;
-import com.randomher0.rtsp.RTSPClient;
+import com.randomher0.rtsp.RTSPForwarder;
 import com.randomher0.ui.main.core.Camera;
 import com.randomher0.ui.main.core.Restream;
 import com.randomher0.ui.main.core.RestreamOptions;
@@ -53,9 +53,9 @@ public class HomeFragment extends Fragment {
         });
 
         binding.buttonRestream.setOnClickListener(view13 -> {
-            RTSPClient rtspClient = new RTSPClient();
+            RTSPForwarder rtspForwarder = new RTSPForwarder();
             try {
-                rtspClient.start();
+                rtspForwarder.start();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
