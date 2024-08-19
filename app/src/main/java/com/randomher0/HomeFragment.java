@@ -15,6 +15,8 @@ import com.randomher0.ui.main.core.Camera;
 import com.randomher0.ui.main.core.Restream;
 import com.randomher0.ui.main.core.RestreamOptions;
 
+import java.io.IOException;
+
 public class HomeFragment extends Fragment {
 
     private FragmentHomeBinding binding;
@@ -52,7 +54,11 @@ public class HomeFragment extends Fragment {
 
         binding.buttonRestream.setOnClickListener(view13 -> {
             RTSPClient rtspClient = new RTSPClient();
-            rtspClient.start();
+            try {
+                rtspClient.start();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         });
     }
 
