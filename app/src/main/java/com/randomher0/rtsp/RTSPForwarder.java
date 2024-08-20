@@ -6,6 +6,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
+import java.util.TimeZone;
 
 public class RTSPForwarder {
 
@@ -13,40 +19,78 @@ public class RTSPForwarder {
     String sdp;
     String sourceSession;
     String destSession;
-    Integer cseq;
+    Integer sourceCseq;
+    Integer destCseq;
 
     public RTSPForwarder() {
-        cseq = 1;
+        sourceCseq = 1;
+        destCseq = 1;
     }
 
     public RTSPResponse readResponse(BufferedReader reader) throws Exception {
         RTSPStatusCode rtspStatusCode = null;
         String responseLine;
-        StringBuilder response = new StringBuilder();
+        StringBuilder responseHeaders = new StringBuilder();
+        StringBuilder responseBody = new StringBuilder();
+        boolean isHeader = true;
 
         while ((responseLine = reader.readLine()) != null) {
             if(responseLine.contains("RTSP/1.0 200 OK")) {
                 rtspStatusCode = RTSPStatusCode.OK;
             }
 
-            response.append(responseLine).append("\n");
-            // RTSP responses typically end with a blank line, break the loop when it's reached
-            if (responseLine.trim().isEmpty()) {
+            if(isHeader && responseLine.isEmpty()) {
+                isHeader= false;
+            } else if(isHeader) {
+                responseHeaders.append(responseLine).append("\r\n");
+            } else {
+                responseBody.append(responseLine).append("\r\n");
+            }
+
+            if(!isHeader && !reader.ready()) {
                 break;
             }
         }
 
         RTSPResponse rtspResponse = new RTSPResponse();
         rtspResponse.setStatusCode(rtspStatusCode);
-        rtspResponse.setBody(response.toString());
+        rtspResponse.setHeaders(responseHeaders.toString());
+        rtspResponse.setBody(responseBody.toString());
 
         return rtspResponse;
     }
 
-    private void sendRTSPOptionsCommand(BufferedWriter writer, String sourceRTSPUrl) {
+    private RTSPResponse readStreamingResponse(BufferedReader reader,
+                                               RTSPStreamDataEventListener listener) throws IOException {
+        RTSPStatusCode rtspStatusCode = null;
+        String responseLine;
+        StringBuilder responseHeaders = new StringBuilder();
+        boolean isHeader = true;
+
+        while ((responseLine = reader.readLine()) != null) {
+            if(responseLine.contains("RTSP/1.0 200 OK")) {
+                rtspStatusCode = RTSPStatusCode.OK;
+            }
+
+            if(isHeader && responseLine.isEmpty()) {
+                isHeader= false;
+            } else if(isHeader) {
+                responseHeaders.append(responseLine).append("\r\n");
+            } else {
+                listener.onData(responseLine);
+            }
+        }
+
+        RTSPResponse rtspResponse = new RTSPResponse();
+        rtspResponse.setStatusCode(rtspStatusCode);
+        rtspResponse.setHeaders(responseHeaders.toString());
+        return rtspResponse;
+    }
+
+    private void sendRTSPOptionsCommand(BufferedWriter writer, Integer cseq, String sourceRTSPUrl) {
         try {
             writer.write("OPTIONS " + sourceRTSPUrl + " RTSP/1.0" +
-                    "\r\nCSeq: " + (cseq++) +
+                    "\r\nCSeq: " + cseq +
                     "\r\nUser-Agent: " + userAgent +
                     "\r\n\r\n"
             );
@@ -56,10 +100,11 @@ public class RTSPForwarder {
         }
     }
 
-    private void sendRTSPDescribeCommand(BufferedWriter writer, String sourceRTSPUrl) {
+    private void sendRTSPDescribeCommand(BufferedWriter writer, Integer cseq, String sourceRTSPUrl) {
         try {
             writer.write("DESCRIBE " + sourceRTSPUrl + " RTSP/1.0" +
-                    "\r\nCSeq: " + (cseq++) +
+                    "\r\nCSeq: " + cseq +
+                    "\r\nAccept: application/sdp" +
                     "\r\nUser-Agent: " + userAgent +
                     "\r\n\r\n"
             );
@@ -69,12 +114,40 @@ public class RTSPForwarder {
         }
     }
 
-    private void sendRTSPSetupCommand(BufferedWriter writer, String streamUrl) {
+    private void sendRTSPAnnounceCommand(BufferedWriter writer, Integer cseq, String streamUrl, List<String> sdpFields) {
         try {
-            writer.write("SETUP " + streamUrl + "/streamid=0" + " RTSP/1.0" +
-                    "\r\nCSeq: " + (cseq++) +
+            SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss z");
+            sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
+            Date now = new Date();
+            String formattedDate = sdf.format(now);
+
+            Long session = new Random().nextLong();
+            String sdpBodyData = String.join("\r\n", sdpFields);
+            sdpBodyData += "\r\n\r\n";
+
+            writer.write("ANNOUNCE " + streamUrl + " RTSP/1.0" +
+                    "\r\nCSeq: " + cseq +
+                    "\r\nDate: " + formattedDate +
+                    "\r\nSession: " + session +
+                    "\r\nContent-Type: application/sdp" +
+                    "\r\nContent-Length: " + sdpBodyData.length() +
                     "\r\nUser-Agent: " + userAgent +
-                    "\r\nTransport: RTP/AVP/TCP;unicast;interleaved=0-1;mode=record" +
+                    "\r\nTransport: RTP/AVP/TCP;unicast;interleaved=0-1" +
+                    "\r\n\r\n" +
+                    sdpBodyData
+            );
+            writer.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void sendRTSPSetupCommand(BufferedWriter writer, Integer cseq, String streamUrl, boolean record) {
+        try {
+            writer.write("SETUP " + streamUrl + " RTSP/1.0" +
+                    "\r\nCSeq: " + cseq +
+                    "\r\nUser-Agent: " + userAgent +
+                    "\r\nTransport: RTP/AVP/TCP;unicast;interleaved=0-1" + (record ? ";mode=record" : "") +
                     "\r\n\r\n"
             );
             writer.flush();
@@ -83,10 +156,10 @@ public class RTSPForwarder {
         }
     }
 
-    private void sendRTSPRecordCommand(BufferedWriter writer, String streamUrl, String session, RTSPRange range) {
+    private void sendRTSPRecordCommand(BufferedWriter writer, Integer cseq, String streamUrl, String session, RTSPRange range) {
         try {
             writer.write("RECORD " + streamUrl + " RTSP/1.0" +
-                    "\r\nCSeq: " + (cseq++) +
+                    "\r\nCSeq: " + cseq +
                     "\r\nRange: npt=" + range.toString() +
                     "\r\nSession: " + session +
                     "\r\nUser-Agent: " + userAgent +
@@ -98,16 +171,24 @@ public class RTSPForwarder {
         }
     }
 
-    private void sendRTSPPlayCommand(BufferedWriter writer, String mediaUrl, String session, RTSPRange range) {
+    private void sendRTSPPlayCommand(BufferedWriter writer, Integer cseq, String mediaUrl, String session, RTSPRange range) {
         try {
             writer.write("PLAY " + mediaUrl + " RTSP/1.0" +
-                    "\r\nCSeq: " + (cseq++) +
+                    "\r\nCSeq: " + cseq +
                     "\r\nSession: " + session +
                     "\r\nRange: npt=" + range.toString() +
                     "\r\nUser-Agent: " + userAgent +
                     "\r\n\r\n"
             );
             writer.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void sendRtspStreamData(BufferedWriter writer, String data) {
+        try {
+            writer.write(data);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -121,46 +202,63 @@ public class RTSPForwarder {
             BufferedWriter sourceWriter = new BufferedWriter(new OutputStreamWriter(sourceSocket.getOutputStream()));
 
             // Step 1: determine valid methods from source server
-            sendRTSPOptionsCommand(sourceWriter, sourceRTSPUrl);
+            sendRTSPOptionsCommand(sourceWriter, sourceCseq++, sourceRTSPUrl);
             RTSPResponse rtspResponseOptions = readResponse(sourceReader);
 
             // Step 2: determine stream descriptor from source server
-            sendRTSPDescribeCommand(sourceWriter, sourceRTSPUrl);
+            sendRTSPDescribeCommand(sourceWriter, sourceCseq++, sourceRTSPUrl);
             RTSPDescribeResponse rtspDescribeResponse = new RTSPDescribeResponse(readResponse(sourceReader));
 
             // Step 3: setup source stream
-            sendRTSPSetupCommand(sourceWriter, sourceRTSPUrl);
+            //String mediaUrl = rtspDescribeResponse.sdpFields.getOrDefault("a=control",null);
+            Optional<String> controlField = rtspDescribeResponse.sdpFields.stream().filter((field) -> field.startsWith("a=control:")).findFirst();
+            final String mediaUrl;
+            mediaUrl = controlField.map(s -> s.substring("a=control:".length())).orElse(sourceRTSPUrl);
+            sendRTSPSetupCommand(sourceWriter, sourceCseq++, mediaUrl, false);
             RTSPSetupResponse sourceRtspSetupResponse = new RTSPSetupResponse(readResponse(sourceReader));
             sourceSession = sourceRtspSetupResponse.getSession();
 
-            // Step4: play stream
-            String mediaUrl = sourceRtspSetupResponse.headers.getOrDefault("Content-Base",sourceRTSPUrl);
-            sendRTSPPlayCommand(sourceWriter, mediaUrl, sourceSession, new RTSPRange(0, 60));
-            RTSPPlayResponse sourceRtspPlayResponse = new RTSPPlayResponse(readResponse(sourceReader));
+            // open connection to dest server
+            Socket destSocket = new Socket("10.0.2.2", 28554);  // RTSP usually runs on port 554
+            BufferedReader destReader = new BufferedReader(new InputStreamReader(destSocket.getInputStream()));
+            BufferedWriter destWriter = new BufferedWriter(new OutputStreamWriter(destSocket.getOutputStream()));
 
-//            // Step 3: open connection to destination server
-//            Socket destSocket = new Socket("10.0.2.2", 28554);  // RTSP usually runs on port 554
-//            BufferedReader destReader = new BufferedReader(new InputStreamReader(destSocket.getInputStream()));
-//            BufferedWriter destWriter = new BufferedWriter(new OutputStreamWriter(destSocket.getOutputStream()));
-//
-//            // Step 4: determine valid methods from source server
-//            sendRTSPOptionsCommand(destWriter, sourceRTSPUrl);
-//            RTSPResponse destRtspResponseOptions = readResponse(destReader);
-//
-//            // Step 5: determine stream descriptor from source server
-//            sendRTSPDescribeCommand(destWriter, sourceRTSPUrl);
+            // determine valid methods from source server
+            sendRTSPOptionsCommand(destWriter, destCseq++, destRTSPUrl);
+            RTSPResponse destRtspResponseOptions = readResponse(destReader);
+
+            // announce a new stream
+            sendRTSPAnnounceCommand(destWriter, destCseq++, destRTSPUrl, rtspDescribeResponse.sdpFields);
+            RTSPResponse destRtspResponseAnnounce = readResponse(destReader);
+
+            // describe dest stream
+//            sendRTSPDescribeCommand(destWriter, destCseq++, destRTSPUrl);
 //            RTSPDescribeResponse destRtspDescribeResponse = new RTSPDescribeResponse(readResponse(destReader));
-//
-//            //setup dest stream (forward sdp info)
-//            sendRTSPSetupCommand(destWriter, destRTSPUrl);
-//            RTSPSetupResponse destRtspSetupResponse = new RTSPSetupResponse(readResponse(destReader));
-//
-//            //record dest stream
-//            sendRTSPRecordCommand(destWriter, destRTSPUrl, destRtspSetupResponse.session);
 
-            // Cleanup and close sockets when done
+            //setup dest stream (forward sdp info)
+            Optional<String> controlField2 = rtspDescribeResponse.sdpFields.stream().filter((field) -> field.startsWith("a=control:")).findFirst();
+            final String mediaUrl2;
+            mediaUrl2 = controlField2.map(s -> s.substring("a=control:".length())).orElse(sourceRTSPUrl);
+//            String mediaUrl2 = destRTSPUrl;
+            sendRTSPSetupCommand(destWriter, destCseq++, mediaUrl2, true);
+            RTSPSetupResponse destRtspSetupResponse = new RTSPSetupResponse(readResponse(destReader));
+            destSession = destRtspSetupResponse.getSession();
+
+            //record dest stream
+            sendRTSPRecordCommand(destWriter, destCseq++, destRTSPUrl, destSession, new RTSPRange(0, 60));
+            RTSPRecordResponse destRtspRecordResponse = new RTSPRecordResponse(readResponse(destReader));
+
+            // Step4: forward stream data
+            sendRTSPPlayCommand(sourceWriter, destCseq++, sourceRTSPUrl, sourceSession, new RTSPRange(0, 60));
+            readStreamingResponse(sourceReader, (String data)->{
+                sendRtspStreamData(destWriter, data);
+                System.out.println(data);
+            });
+
+            //TODO: teardown.
+
             sourceSocket.close();
-//            destSocket.close();
+            destSocket.close();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -168,7 +266,7 @@ public class RTSPForwarder {
 
     public void start() throws IOException {
         String sourceRTSPUrl = "rtsp://localhost:8554/live.stream";
-        String destRTSPUrl = "rtsp://localhost:8555";
+        String destRTSPUrl = "rtsp://localhost:8554/live.stream";
 
         Thread thread = new Thread(new Runnable() {
             @Override

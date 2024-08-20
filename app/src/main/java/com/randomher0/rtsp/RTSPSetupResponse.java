@@ -15,7 +15,7 @@ public class RTSPSetupResponse {
     private String transport;
 
     public RTSPSetupResponse(RTSPResponse rtspResponse) {
-        parse(rtspResponse.getBody());
+        parse(rtspResponse.getHeaders());
     }
 
     public void parse(String response) {

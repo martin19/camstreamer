@@ -13,7 +13,7 @@ public class RTSPPlayResponse {
     private String transport;
 
     public RTSPPlayResponse(RTSPResponse rtspResponse) {
-        parse(rtspResponse.getBody());
+        parse(rtspResponse.getHeaders());
     }
 
     public void parse(String response) {

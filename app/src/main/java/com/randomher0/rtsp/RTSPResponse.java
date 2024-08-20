@@ -2,6 +2,7 @@ package com.randomher0.rtsp;
 
 public class RTSPResponse {
     private RTSPStatusCode statusCode;
+    private String headers;
     private String body;
 
     public String getBody() {
@@ -18,5 +19,13 @@ public class RTSPResponse {
 
     public void setStatusCode(RTSPStatusCode statusCode) {
         this.statusCode = statusCode;
+    }
+
+    public String getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(String headers) {
+        this.headers = headers;
     }
 }

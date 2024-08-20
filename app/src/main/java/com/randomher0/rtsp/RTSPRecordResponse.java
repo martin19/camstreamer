@@ -2,20 +2,24 @@ package com.randomher0.rtsp;
 
 import java.io.BufferedReader;
 import java.io.StringReader;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-public class RTSPDescribeResponse {
+public class RTSPRecordResponse {
 
     Map<String, String> headers;
-    List<String> sdpFields;
+    private String range;
+    private String session;
+    private String transport;
 
-    public RTSPDescribeResponse(RTSPResponse rtspResponse) {
-        try {
-            headers = parseHeaders(rtspResponse.getHeaders());
-            sdpFields = parseSDP(rtspResponse.getBody());
+    public RTSPRecordResponse(RTSPResponse rtspResponse) {
+        parse(rtspResponse.getHeaders());
+    }
+
+    public void parse(String response) {
+       try {
+            // Step 1: Parse Headers
+            headers = parseHeaders(response);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -41,17 +45,27 @@ public class RTSPDescribeResponse {
         return headers;
     }
 
-    public List<String> parseSDP(String sdpData) throws Exception {
-        List<String> sdpFields = new ArrayList<>();
-        BufferedReader reader = new BufferedReader(new StringReader(sdpData));
+    public String getRange() {
+        return range;
+    }
 
-        String line;
-        while ((line = reader.readLine()) != null) {
-            if (line.trim().isEmpty()) {
-                continue;
-            }
-            sdpFields.add(line.trim());
-        }
-        return sdpFields;
+    public void setRange(String range) {
+        this.range = range;
+    }
+
+    public String getSession() {
+        return session;
+    }
+
+    public void setSession(String session) {
+        this.session = session;
+    }
+
+    public String getTransport() {
+        return transport;
+    }
+
+    public void setTransport(String transport) {
+        this.transport = transport;
     }
 }

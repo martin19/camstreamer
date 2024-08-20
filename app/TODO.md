@@ -34,6 +34,7 @@ TODO: tunnel any rtsp video stream from src (wifi) to dst (public net) (see [9])
         PLAY              C->S             P,S        required
         SETUP             C->S             S          required
         TEARDOWN          C->S             P,S        required
+        ANNOUNCE, send proper sdp data and debug on destination server
 
     - use ffmpeg to read the stream
     - optinally recode it   
