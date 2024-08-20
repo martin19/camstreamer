@@ -2,5 +2,5 @@ package com.randomher0.rtsp;
 
 public interface RTSPStreamDataEventListener {
 
-    void onData(String data);
+    void onData(byte[] data, int bytes);
 }

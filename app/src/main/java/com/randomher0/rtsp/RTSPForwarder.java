@@ -1,5 +1,7 @@
 package com.randomher0.rtsp;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -61,6 +63,7 @@ public class RTSPForwarder {
     }
 
     private RTSPResponse readStreamingResponse(BufferedReader reader,
+                                               BufferedInputStream binaryInputStream,
                                                RTSPStreamDataEventListener listener) throws IOException {
         RTSPStatusCode rtspStatusCode = null;
         String responseLine;
@@ -77,8 +80,15 @@ public class RTSPForwarder {
             } else if(isHeader) {
                 responseHeaders.append(responseLine).append("\r\n");
             } else {
-                listener.onData(responseLine);
+                break;
             }
+        }
+
+        //stream binary data
+        byte[] buffer = new byte[4096];
+        int bytesRead;
+        while ((bytesRead = binaryInputStream.read(buffer)) != -1) {
+            listener.onData(buffer, bytesRead);
         }
 
         RTSPResponse rtspResponse = new RTSPResponse();
@@ -186,9 +196,9 @@ public class RTSPForwarder {
         }
     }
 
-    private void sendRtspStreamData(BufferedWriter writer, String data) {
+    private void sendRtspStreamData(BufferedWriter writer, BufferedOutputStream binaryOutputStream, byte[] data, int bytes) {
         try {
-            writer.write(data);
+            binaryOutputStream.write(data, 0, bytes);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -200,6 +210,7 @@ public class RTSPForwarder {
             Socket sourceSocket = new Socket("10.0.2.2", 18554);  // RTSP usually runs on port 554
             BufferedReader sourceReader = new BufferedReader(new InputStreamReader(sourceSocket.getInputStream()));
             BufferedWriter sourceWriter = new BufferedWriter(new OutputStreamWriter(sourceSocket.getOutputStream()));
+            BufferedInputStream sourceBinaryInputStream = new BufferedInputStream(sourceSocket.getInputStream());
 
             // Step 1: determine valid methods from source server
             sendRTSPOptionsCommand(sourceWriter, sourceCseq++, sourceRTSPUrl);
@@ -222,6 +233,7 @@ public class RTSPForwarder {
             Socket destSocket = new Socket("10.0.2.2", 28554);  // RTSP usually runs on port 554
             BufferedReader destReader = new BufferedReader(new InputStreamReader(destSocket.getInputStream()));
             BufferedWriter destWriter = new BufferedWriter(new OutputStreamWriter(destSocket.getOutputStream()));
+            BufferedOutputStream destBinaryOutputStream = new BufferedOutputStream(destSocket.getOutputStream());
 
             // determine valid methods from source server
             sendRTSPOptionsCommand(destWriter, destCseq++, destRTSPUrl);
@@ -250,8 +262,9 @@ public class RTSPForwarder {
 
             // Step4: forward stream data
             sendRTSPPlayCommand(sourceWriter, destCseq++, sourceRTSPUrl, sourceSession, new RTSPRange(0, 60));
-            readStreamingResponse(sourceReader, (String data)->{
-                sendRtspStreamData(destWriter, data);
+
+            readStreamingResponse(sourceReader, sourceBinaryInputStream, (byte[] data, int bytes)->{
+                sendRtspStreamData(destWriter, destBinaryOutputStream, data, bytes);
                 System.out.println(data);
             });
 
